@@ -14,7 +14,15 @@ def run_sender(
     sim_seconds,
     receiver_host,
     receiver_port,
+    test_mode,
+        #0 --> Normal Run
+        #1 --> Packet Loss Test
+        #2 --> Packet Out of Order Test
+        #3 --> Packet Duplication Test
 ):
+    if test_mode not in (0, 1, 2, 3):
+        raise ValueError("test_mode must be 0, 1, 2 or 3")
+
     if sample_rate <= 0 or samples_per_window <= 0 or sim_seconds <= 0:
         raise ValueError("Sample rate, window size and duration must be positive")
 
@@ -78,9 +86,12 @@ def run_sender(
             available_samples // samples_per_window,
         )
 
-        if packet_count == 0:
+        minimum_packets = {0: 1, 1: 11, 2: 32, 3: 21}
+
+        if packet_count < minimum_packets[test_mode]:
             raise ValueError(
-                "No complete windows available for the requested duration"
+                f"Test mode {test_mode} requires at least "
+                f"{minimum_packets[test_mode]} packets"
             )
 
         print(f"\nSelected channels: {channel_names}")
@@ -99,6 +110,10 @@ def run_sender(
             destination = (receiver_host, receiver_port)
             header_struct = struct.Struct("!Id")
             stream_start = time.perf_counter()
+
+            #(packet reordering)
+            if test_mode == 2:
+                held_packet = None
 
             for sequence in range(packet_count):
                 sample_start = sequence * samples_per_window
@@ -144,13 +159,21 @@ def run_sender(
 
                 sent_at = time.perf_counter()
 
-                #SİLİNECEK test komutu
-                if sequence == 10:
-                    print("TEST: packet 010 intentionally dropped")
-                    continue
+                #(packet_loss)
+                if test_mode == 1:
+                    if sequence == 10:
+                        print("TEST: packet 010 intentionally dropped")
+                        continue
 
                 header = header_struct.pack(sequence, sent_at)
                 packet = header + payload
+
+                #(packet_reordering)
+                if test_mode == 2:
+                    if sequence == 30:
+                        held_packet = packet
+                        print("TEST: packet 030 held back")
+                        continue
 
                 sent_bytes = sock.sendto(packet, destination)
 
@@ -159,13 +182,31 @@ def run_sender(
 
                 total_sent_bytes += sent_bytes
 
+                #test kodu (reordering)
+                # Send packet 030 after packet 031.
+                if test_mode == 2 :
+                    if sequence == 31 and held_packet is not None:
+                        held_bytes = sock.sendto(held_packet, destination)
 
-                #SİLİNECEK test kodu
-                if sequence == 20:
-                    duplicate_bytes = sock.sendto(packet, destination)
-                    total_sent_bytes += duplicate_bytes
+                        if held_bytes != len(held_packet):
+                            raise RuntimeError("Incomplete UDP send for held packet")
 
-                    print("TEST: packet 020 intentionally duplicated")
+                        total_sent_bytes += held_bytes
+                        held_packet = None
+
+                        print("TEST: packet 030 sent after packet 031")
+
+                #test kodu (packet duplication)
+                if test_mode == 3:
+                    if sequence == 20:
+                        duplicate_bytes = sock.sendto(packet, destination)
+
+                        if duplicate_bytes != len(packet):
+                            raise RuntimeError("Incomplete UDP send for duplicate packet")
+
+                        total_sent_bytes += duplicate_bytes
+
+                        print("TEST: packet 020 intentionally duplicated")
 
                 scheduling_lateness_ms = (sent_at - deadline) * 1000
 
@@ -178,10 +219,10 @@ def run_sender(
                 )
 
         print("\nSender completed.")
-        print(f"Packets sent: {packet_count}")
+        print(f"Planned packets: {packet_count}")
         print(f"Total application bytes sent: {total_sent_bytes}")
 
-        return packet_count;
+        return packet_count
 
     finally:
         reader.close()

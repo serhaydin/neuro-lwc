@@ -53,6 +53,7 @@ def main():
             sim_seconds=SIMULATION_SECONDS,
             receiver_host=RECEIVER_HOST,
             receiver_port=RECEIVER_PORT,
+            test_mode=1,
         )
 
         # Son paketten sonra receiver'ın timeout ile kapanmasını bekle.
