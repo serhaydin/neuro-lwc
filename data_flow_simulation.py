@@ -37,61 +37,6 @@ def receiver(payload: bytes) -> np.ndarray:
 
 
 def main():
-    if not EDF_PATH.is_file():
-        raise FileNotFoundError(f"EDF file not found: {EDF_PATH}")
-
-    reader = pyedflib.EdfReader(str(EDF_PATH))
-
-    try:
-        labels = [label.strip() for label in reader.getSignalLabels()]
-
-        print(f"File: {EDF_PATH.name}")
-        print(f"Recording duration: {reader.getFileDuration()} seconds")
-        print(f"Available channels: {labels}")
-
-        channel_indices = []
-
-        for name in CHANNEL_NAMES:
-            matches = [
-                index
-                for index, label in enumerate(labels)
-                if label == name
-            ]
-
-            if len(matches) != 1:
-                raise ValueError(
-                    f"Channel must exist exactly once: {name}"
-                )
-
-            index = matches[0]
-            frequency = reader.getSampleFrequency(index)
-
-            if frequency != SAMPLE_RATE:
-                raise ValueError(
-                    f"{name}: expected {SAMPLE_RATE} Hz, got {frequency}"
-                )
-
-            channel_indices.append(index)
-
-        available_samples = min(
-            int(reader.getNSamples()[index])
-            for index in channel_indices
-        )
-
-        packet_count = min(
-            int(SIMULATION_SECONDS / WINDOW_SECONDS),
-            available_samples // SAMPLES_PER_WINDOW,
-        )
-
-        if packet_count == 0:
-            raise ValueError("Recording has no complete windows")
-
-        print(f"\nSelected channels: {CHANNEL_NAMES}")
-        print(f"Window: {WINDOW_SECONDS * 1000} ms")
-        print(f"Payload: {PAYLOAD_BYTES} bytes")
-        print(f"Packets to send: {packet_count}\n")
-
-        original_windows = []
         received_windows = []
 
         stream_start = time.perf_counter()
