@@ -1,0 +1,6 @@
+.venv/
+.idea/
+__pycache__/
+*.pyc
+data/raw/
+CHB-MIT_Scalp_EEG/
