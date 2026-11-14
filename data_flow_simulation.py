@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from sender import run_sender
-from multiprocessing import Process, Event
+from multiprocessing import Process, Event, Value
 from receiver import run_receiver
 
 
@@ -24,6 +24,7 @@ RECEIVER_PORT = 65535
 
 def main():
     receiver_ready = Event()
+    expected_packets = Value("q", -1)
 
     receiver_process = Process(
         target=run_receiver,
@@ -34,6 +35,7 @@ def main():
             "samples_per_window": SAMPLES_PER_WINDOW,
             "idle_timeout": 10.0,
             "ready_event": receiver_ready,
+            "expected_packets": expected_packets,
         },
     )
 
@@ -43,7 +45,7 @@ def main():
         # Receiver, portu açtıktan sonra hazır olduğunu bildirir.
         if not receiver_ready.wait(timeout=10.0):
             raise RuntimeError("Receiver could not become ready")
-        run_sender(
+        expected_packets.value = run_sender(
             edf_path=EDF_PATH,
             channel_names=CHANNEL_NAMES,
             sample_rate=SAMPLE_RATE,

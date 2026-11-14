@@ -144,6 +144,11 @@ def run_sender(
 
                 sent_at = time.perf_counter()
 
+                #SİLİNECEK test komutu
+                if sequence == 10:
+                    print("TEST: packet 010 intentionally dropped")
+                    continue
+
                 header = header_struct.pack(sequence, sent_at)
                 packet = header + payload
 
@@ -153,6 +158,14 @@ def run_sender(
                     raise RuntimeError("Incomplete UDP send")
 
                 total_sent_bytes += sent_bytes
+
+
+                #SİLİNECEK test kodu
+                if sequence == 20:
+                    duplicate_bytes = sock.sendto(packet, destination)
+                    total_sent_bytes += duplicate_bytes
+
+                    print("TEST: packet 020 intentionally duplicated")
 
                 scheduling_lateness_ms = (sent_at - deadline) * 1000
 
@@ -167,6 +180,8 @@ def run_sender(
         print("\nSender completed.")
         print(f"Packets sent: {packet_count}")
         print(f"Total application bytes sent: {total_sent_bytes}")
+
+        return packet_count;
 
     finally:
         reader.close()
