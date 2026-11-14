@@ -1,4 +1,6 @@
 import socket
+import struct
+import time
 
 import numpy as np
 
@@ -18,6 +20,8 @@ def run_receiver(
         raise ValueError("Timeout must be positive")
 
     payload_bytes = channel_count * samples_per_window * 2
+    header_struct = struct.Struct("!Id")
+    packet_bytes = header_struct.size + payload_bytes
     received_windows = []
     received_packets = 0
     rejected_packets = 0
@@ -46,7 +50,8 @@ def run_receiver(
             try:
                 # Large buffer prevents oversized packets from being
                 # truncated to the expected payload size.
-                payload, sender_address = sock.recvfrom(65535)
+                packet, sender_address = sock.recvfrom(65535)
+                received_at = time.perf_counter()
 
             except socket.timeout:
                 print(
@@ -55,18 +60,26 @@ def run_receiver(
                 )
                 break
 
-            if len(payload) != payload_bytes:
+            if len(packet) != packet_bytes:
                 rejected_packets += 1
 
                 print(
                     f"Rejected packet from {sender_address}: "
-                    f"expected {payload_bytes} bytes, "
-                    f"got {len(payload)}"
+                    f"expected {packet_bytes} bytes, "
+                    f"got {len(packet)}"
                 )
                 continue
 
             # Reverse the sender's serialization:
             # little-endian int16, channel-major layout.
+
+            header = packet[:header_struct.size]
+            payload = packet[header_struct.size:]
+
+            sequence, sent_at = header_struct.unpack(header)
+
+            transfer_ms = (received_at - sent_at) * 1000
+
             window = np.frombuffer(
                 payload,
                 dtype="<i2",
@@ -78,8 +91,10 @@ def run_receiver(
             received_windows.append(window.copy())
 
             print(
-                f"Received packet {received_packets:03d} | "
-                f"{len(payload)} bytes | "
+                f"Received packet {sequence:03d} | "
+                f"payload: {len(payload)} bytes | "
+                f"total: {len(packet)} bytes | "
+                f"transfer: {transfer_ms:.3f} ms | "
                 f"shape: {window.shape}"
             )
             received_packets += 1

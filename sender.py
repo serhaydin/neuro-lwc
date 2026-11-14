@@ -1,5 +1,6 @@
 import socket
 import time
+import struct
 
 import numpy as np
 import pyedflib
@@ -96,6 +97,7 @@ def run_sender(
             socket.SOCK_DGRAM,
         ) as sock:
             destination = (receiver_host, receiver_port)
+            header_struct = struct.Struct("!Id")
             stream_start = time.perf_counter()
 
             for sequence in range(packet_count):
@@ -142,27 +144,29 @@ def run_sender(
 
                 sent_at = time.perf_counter()
 
-                sent_bytes = sock.sendto(payload, destination)
+                header = header_struct.pack(sequence, sent_at)
+                packet = header + payload
 
-                if sent_bytes != len(payload):
+                sent_bytes = sock.sendto(packet, destination)
+
+                if sent_bytes != len(packet):
                     raise RuntimeError("Incomplete UDP send")
 
                 total_sent_bytes += sent_bytes
 
-                scheduling_lateness_ms = (
-                    sent_at - deadline
-                ) * 1000
+                scheduling_lateness_ms = (sent_at - deadline) * 1000
 
                 print(
                     f"Sent packet {sequence:03d} | "
-                    f"{sent_bytes} bytes | "
-                    f"schedule lateness: "
-                    f"{scheduling_lateness_ms:.3f} ms"
+                    f"payload: {len(payload)} bytes | "
+                    f"header: {len(header)} bytes | "
+                    f"total: {sent_bytes} bytes | "
+                    f"schedule lateness: {scheduling_lateness_ms:.3f} ms"
                 )
 
         print("\nSender completed.")
         print(f"Packets sent: {packet_count}")
-        print(f"Total payload bytes sent: {total_sent_bytes}")
+        print(f"Total application bytes sent: {total_sent_bytes}")
 
     finally:
         reader.close()
