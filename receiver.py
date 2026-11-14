@@ -13,6 +13,7 @@ def run_receiver(
     idle_timeout=10.0,
     ready_event=None,
     expected_packets=None,
+    result_queue=None,
 ):
     if channel_count <= 0 or samples_per_window <= 0:
         raise ValueError("Channel count and window size must be positive")
@@ -117,6 +118,9 @@ def run_receiver(
                 f"shape: {window.shape}"
             )
             received_packets += 1
+
+    if result_queue is not None:
+        result_queue.put(received_windows)
 
     print("\nReceiver completed.")
     print(f"Accepted unique packets: {received_packets}")

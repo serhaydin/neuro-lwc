@@ -101,6 +101,8 @@ def run_sender(
         print(f"Destination: {receiver_host}:{receiver_port}\n")
 
         total_sent_bytes = 0
+        original_payloads = {}
+
 
         # Open one UDP socket for the entire stream.
         with socket.socket(
@@ -142,6 +144,7 @@ def run_sender(
 
                 # Serialize channel by channel as little-endian int16.
                 payload = window.astype("<i2").tobytes(order="C")
+                original_payloads[sequence] = payload
 
                 if len(payload) != payload_bytes:
                     raise ValueError("Unexpected payload size")
@@ -222,7 +225,7 @@ def run_sender(
         print(f"Planned packets: {packet_count}")
         print(f"Total application bytes sent: {total_sent_bytes}")
 
-        return packet_count
+        return packet_count, original_payloads
 
     finally:
         reader.close()
