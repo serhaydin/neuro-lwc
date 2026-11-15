@@ -4,6 +4,7 @@ import struct
 
 import numpy as np
 import pyedflib
+from crypto_bridge import CryptoBridge
 
 
 def run_sender(
@@ -19,9 +20,16 @@ def run_sender(
         #1 --> Packet Loss Test
         #2 --> Packet Out of Order Test
         #3 --> Packet Duplication Test
+
+    crypto_mode="none",
+    session_key=None,
+    nonce_prefix=None,
 ):
-    if test_mode not in (0, 1, 2, 3):
-        raise ValueError("test_mode must be 0, 1, 2 or 3")
+    if test_mode not in range(8):
+        raise ValueError("test_mode must be between 0 and 7")
+
+    if test_mode >= 4 and crypto_mode == "none":
+        raise ValueError("Tampering tests require encryption")
 
     if sample_rate <= 0 or samples_per_window <= 0 or sim_seconds <= 0:
         raise ValueError("Sample rate, window size and duration must be positive")
@@ -31,6 +39,27 @@ def run_sender(
 
     if len(set(channel_names)) != len(channel_names):
         raise ValueError("Selected channel names must be unique")
+
+
+    if crypto_mode not in ("none", "ascon", "aes-gcm"):
+        raise ValueError("Unsupported crypto mode")
+
+    crypto = None
+
+    if crypto_mode != "none":
+        crypto = CryptoBridge(crypto_mode)
+
+        if not isinstance(session_key, bytes) or len(session_key) != 16:
+            raise ValueError("Session key must be 16 bytes")
+
+        expected_prefix_bytes = crypto.nonce_bytes - 4
+
+        if (
+            not isinstance(nonce_prefix, bytes)
+            or len(nonce_prefix) != expected_prefix_bytes
+        ):
+            raise ValueError("Invalid nonce prefix")
+
 
     window_seconds = samples_per_window / sample_rate
     payload_bytes = len(channel_names) * samples_per_window * 2
@@ -86,13 +115,25 @@ def run_sender(
             available_samples // samples_per_window,
         )
 
-        minimum_packets = {0: 1, 1: 11, 2: 32, 3: 21}
+        minimum_packets = {
+            0: 1,
+            1: 11,
+            2: 32,
+            3: 21,
+            4: 11,
+            5: 11,
+            6: 11,
+            7: 11,
+        }
 
         if packet_count < minimum_packets[test_mode]:
             raise ValueError(
                 f"Test mode {test_mode} requires at least "
                 f"{minimum_packets[test_mode]} packets"
             )
+
+        if packet_count > 2**32:
+            raise ValueError("Packet count exceeds the sequence number range")
 
         print(f"\nSelected channels: {channel_names}")
         print(f"Window: {window_seconds * 1000} ms")
@@ -170,7 +211,58 @@ def run_sender(
                         continue
 
                 header = header_struct.pack(sequence, sent_at)
-                packet = header + payload
+
+                if crypto is None:
+                    packet = header + payload
+                else:
+                    nonce = (
+                            nonce_prefix
+                            + sequence.to_bytes(4, "big")
+                    )
+
+                    ciphertext = crypto.encrypt(
+                        payload,
+                        session_key,
+                        nonce,
+                        aad=header,
+                    )
+
+                    packet = header + nonce + ciphertext
+
+                if len(packet) > 65507:
+                    raise ValueError("Packet exceeds the IPv4 UDP payload limit")
+
+                # Modify one packet after encryption.
+                if test_mode in (4, 5, 6, 7) and sequence == 10:
+                    modified_packet = bytearray(packet)
+
+                    if test_mode == 4:
+                        # First ciphertext byte, after header and nonce.
+                        index = header_struct.size + crypto.nonce_bytes
+                        description = "ciphertext"
+
+                    elif test_mode == 5:
+                        # Last authentication tag byte.
+                        index = len(packet) - 1
+                        description = "authentication tag"
+
+                    elif test_mode == 6:
+                        # Last timestamp byte; leave the sequence unchanged.
+                        index = header_struct.size - 1
+                        description = "timestamp (AAD)"
+
+                    else:
+                        # First nonce byte.
+                        index = header_struct.size
+                        description = "nonce"
+
+                    modified_packet[index] ^= 0x01
+                    packet = bytes(modified_packet)
+
+                    print(
+                        f"TEST: packet {sequence:03d} "
+                        f"intentionally modified: {description}"
+                    )
 
                 #(packet_reordering)
                 if test_mode == 2:
@@ -228,7 +320,7 @@ def run_sender(
                                                             held_send_at - held_deadline
                                                     ) * 1000,
                             "packet_bytes": held_bytes,
-                            "payload_bytes": len(held_packet) - header_struct.size,
+                            "payload_bytes": payload_bytes,
                         })
 
                         held_packet = None

@@ -94,3 +94,28 @@ set_target_properties(test_aes_gcm PROPERTIES
 )
 
 add_test(NAME aes_gcm_tests COMMAND test_aes_gcm)
+
+add_library(neuro_crypto SHARED
+        ascon_aead.c
+        ascon_aead.h
+        aes_gcm.c
+        aes_gcm.h
+)
+
+target_link_libraries(neuro_crypto PRIVATE
+        ascon_reference
+        mbedcrypto
+)
+
+target_include_directories(neuro_crypto PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+set_target_properties(neuro_crypto PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+        PREFIX ""
+        OUTPUT_NAME "neuro_crypto"
+)
