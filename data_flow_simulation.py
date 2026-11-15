@@ -27,8 +27,18 @@ SIMULATION_SECONDS = 5
 RECEIVER_HOST = "127.0.0.1"
 RECEIVER_PORT = 65535
 
-TEST_MODE = 3
-CRYPTO_MODE = "none"  # "none", "ascon", "aes-gcm"
+# Test modes:
+# 0: Normal transmission.
+# 1: Drop packet 10 to test packet loss detection.
+# 2: Send packet 30 after packet 31 to test out-of-order detection.
+# 3: Send packet 20 twice to test duplicate detection.
+# 4: Modify packet 10's ciphertext to test authentication failure.
+# 5: Modify packet 10's tag to test authentication failure.
+# 6: Modify packet 10's timestamp (AAD) to test header authentication.
+# 7: Modify packet 10's nonce to test nonce validation.
+# Modes 4-7 require encryption; the modified packet must be rejected.
+TEST_MODE = 7
+CRYPTO_MODE = "aes-gcm"  # "none", "ascon", "aes-gcm"
 
 NONCE_BYTES = {
     "ascon": 16,
@@ -79,7 +89,7 @@ def main():
             "receiver_port": RECEIVER_PORT,
             "channel_count": len(CHANNEL_NAMES),
             "samples_per_window": SAMPLES_PER_WINDOW,
-            "idle_timeout": 10.0,
+            "idle_timeout":2.0,
             "ready_event": receiver_ready,
             "expected_packets": expected_packets,
             "result_queue": result_queue,
@@ -164,19 +174,38 @@ def main():
         print(f"Missing sequences: {missing_sequences}")
         print(f"Unexpected sequences: {unexpected_sequences}")
 
-        expected_missing = [10] if TEST_MODE == 1 else []
+        expected_missing = (
+            [10] if TEST_MODE in (1, 4, 5, 6, 7) else []
+        )
         expected_duplicates = 1 if TEST_MODE == 3 else 0
         expected_out_of_order = 1 if TEST_MODE == 2 else 0
+        expected_auth_failures = 1 if TEST_MODE in (4, 5, 6) else 0
+        expected_nonce_failures = 1 if TEST_MODE == 7 else 0
+
+        expected_unique = packet_count - len(expected_missing)
+
+        # Loss mode skips a send; duplication mode adds a send.
+        expected_sends = (
+                packet_count
+                - (1 if TEST_MODE == 1 else 0)
+                + expected_duplicates
+        )
 
         test_passed = (
-            not mismatched_sequences
-            and not unexpected_sequences
-            and missing_sequences == expected_missing
-            and receiver_stats["duplicate_packets"] == expected_duplicates
-            and receiver_stats["out_of_order_packets"] == expected_out_of_order
-            and receiver_stats["rejected_size_packets"] == 0
-            and receiver_stats["rejected_auth_packets"] == 0
-            and receiver_stats["rejected_nonce_packets"] == 0
+                not mismatched_sequences
+                and not unexpected_sequences
+                and missing_sequences == expected_missing
+                and matched_packets == expected_unique
+                and receiver_stats["accepted_unique_packets"] == expected_unique
+                and len(send_records) == expected_sends
+                and len(receive_records) == expected_sends
+                and receiver_stats["duplicate_packets"] == expected_duplicates
+                and receiver_stats["out_of_order_packets"] == expected_out_of_order
+                and receiver_stats["rejected_size_packets"] == 0
+                and receiver_stats["rejected_auth_packets"]
+                == expected_auth_failures
+                and receiver_stats["rejected_nonce_packets"]
+                == expected_nonce_failures
         )
 
         # Use only accepted unique packets for latency statistics.

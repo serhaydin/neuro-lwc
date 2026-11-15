@@ -25,8 +25,11 @@ def run_sender(
     session_key=None,
     nonce_prefix=None,
 ):
-    if test_mode not in (0, 1, 2, 3):
-        raise ValueError("test_mode must be 0, 1, 2 or 3")
+    if test_mode not in range(8):
+        raise ValueError("test_mode must be between 0 and 7")
+
+    if test_mode >= 4 and crypto_mode == "none":
+        raise ValueError("Tampering tests require encryption")
 
     if sample_rate <= 0 or samples_per_window <= 0 or sim_seconds <= 0:
         raise ValueError("Sample rate, window size and duration must be positive")
@@ -112,7 +115,16 @@ def run_sender(
             available_samples // samples_per_window,
         )
 
-        minimum_packets = {0: 1, 1: 11, 2: 32, 3: 21}
+        minimum_packets = {
+            0: 1,
+            1: 11,
+            2: 32,
+            3: 21,
+            4: 11,
+            5: 11,
+            6: 11,
+            7: 11,
+        }
 
         if packet_count < minimum_packets[test_mode]:
             raise ValueError(
@@ -219,6 +231,38 @@ def run_sender(
 
                 if len(packet) > 65507:
                     raise ValueError("Packet exceeds the IPv4 UDP payload limit")
+
+                # Modify one packet after encryption.
+                if test_mode in (4, 5, 6, 7) and sequence == 10:
+                    modified_packet = bytearray(packet)
+
+                    if test_mode == 4:
+                        # First ciphertext byte, after header and nonce.
+                        index = header_struct.size + crypto.nonce_bytes
+                        description = "ciphertext"
+
+                    elif test_mode == 5:
+                        # Last authentication tag byte.
+                        index = len(packet) - 1
+                        description = "authentication tag"
+
+                    elif test_mode == 6:
+                        # Last timestamp byte; leave the sequence unchanged.
+                        index = header_struct.size - 1
+                        description = "timestamp (AAD)"
+
+                    else:
+                        # First nonce byte.
+                        index = header_struct.size
+                        description = "nonce"
+
+                    modified_packet[index] ^= 0x01
+                    packet = bytes(modified_packet)
+
+                    print(
+                        f"TEST: packet {sequence:03d} "
+                        f"intentionally modified: {description}"
+                    )
 
                 #(packet_reordering)
                 if test_mode == 2:

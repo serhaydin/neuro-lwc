@@ -11,7 +11,7 @@ def run_receiver(
     receiver_port,
     channel_count,
     samples_per_window,
-    idle_timeout=10.0,
+    idle_timeout=2.0,
     ready_event=None,
     expected_packets=None,
     result_queue=None,
