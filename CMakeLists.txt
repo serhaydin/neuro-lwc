@@ -48,3 +48,20 @@ set_target_properties(test_ascon PROPERTIES
 
 enable_testing()
 add_test(NAME ascon_tests COMMAND test_ascon)
+
+# Mbed TLS configuration
+set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+
+set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "" FORCE)
+set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "" FORCE)
+
+set(MBEDTLS_CONFIG_FILE
+        "${CMAKE_CURRENT_SOURCE_DIR}/mbedtls_config.h"
+        CACHE FILEPATH "" FORCE
+)
+
+# Compatibility with the older minimum CMake version in Mbed TLS.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
+add_subdirectory(third_party/mbedtls EXCLUDE_FROM_ALL)
