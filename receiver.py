@@ -25,6 +25,7 @@ def run_receiver(
     header_struct = struct.Struct("!Id")
     packet_bytes = header_struct.size + payload_bytes
     received_windows = []
+    receive_records = []
     received_packets = 0
     rejected_packets = 0
     seen_sequences = set()
@@ -69,6 +70,15 @@ def run_receiver(
             if len(packet) != packet_bytes:
                 rejected_packets += 1
 
+                receive_records.append({
+                    "sequence": None,
+                    "status": "invalid_size",
+                    "timestamp_at": None,
+                    "received_at": received_at,
+                    "transfer_ms": None,
+                    "packet_bytes": len(packet),
+                })
+
                 print(
                     f"Rejected packet from {sender_address}: "
                     f"expected {packet_bytes} bytes, "
@@ -83,20 +93,31 @@ def run_receiver(
 
             sequence, sent_at = header_struct.unpack(header)
 
+            transfer_ms = (received_at - sent_at) * 1000
+
             if sequence in seen_sequences:
                 duplicate_packets += 1
+
+                receive_records.append({
+                    "sequence": sequence,
+                    "status": "duplicate",
+                    "timestamp_at": sent_at,
+                    "received_at": received_at,
+                    "transfer_ms": transfer_ms,
+                    "packet_bytes": len(packet),
+                })
 
                 print(f"Duplicate packet {sequence:03d}: ignored")
                 continue
 
-            if sequence < highest_sequence:
+            out_of_order = sequence < highest_sequence
+
+            if out_of_order:
                 out_of_order_packets += 1
                 print(f"Out-of-order packet {sequence:03d}")
 
             seen_sequences.add(sequence)
             highest_sequence = max(highest_sequence, sequence)
-
-            transfer_ms = (received_at - sent_at) * 1000
 
             payload = packet[header_struct.size:]
 
@@ -110,6 +131,15 @@ def run_receiver(
 
             received_windows.append((sequence, window.copy()))
 
+            receive_records.append({
+                "sequence": sequence,
+                "status": "out_of_order" if out_of_order else "accepted",
+                "timestamp_at": sent_at,
+                "received_at": received_at,
+                "transfer_ms": transfer_ms,
+                "packet_bytes": len(packet),
+            })
+
             print(
                 f"Received packet {sequence:03d} | "
                 f"payload: {len(payload)} bytes | "
@@ -120,7 +150,16 @@ def run_receiver(
             received_packets += 1
 
     if result_queue is not None:
-        result_queue.put(received_windows)
+        result_queue.put({
+            "windows": list(received_windows),
+            "records": receive_records,
+            "stats": {
+                "accepted_unique_packets": received_packets,
+                "rejected_size_packets": rejected_packets,
+                "duplicate_packets": duplicate_packets,
+                "out_of_order_packets": out_of_order_packets,
+            },
+        })
 
     print("\nReceiver completed.")
     print(f"Accepted unique packets: {received_packets}")

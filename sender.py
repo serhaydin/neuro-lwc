@@ -102,6 +102,7 @@ def run_sender(
 
         total_sent_bytes = 0
         original_payloads = {}
+        send_records = []
 
 
         # Open one UDP socket for the entire stream.
@@ -178,6 +179,7 @@ def run_sender(
                         print("TEST: packet 030 held back")
                         continue
 
+                send_call_at = time.perf_counter()
                 sent_bytes = sock.sendto(packet, destination)
 
                 if sent_bytes != len(packet):
@@ -185,23 +187,57 @@ def run_sender(
 
                 total_sent_bytes += sent_bytes
 
+                send_records.append({
+                    "sequence": sequence,
+                    "send_type": "normal",
+                    "timestamp_at": sent_at,
+                    "send_call_at": send_call_at,
+                    "scheduled_at": deadline,
+                    "schedule_lateness_ms": (send_call_at - deadline) * 1000,
+                    "packet_bytes": sent_bytes,
+                    "payload_bytes": len(payload),
+                })
+
                 #test kodu (reordering)
                 # Send packet 030 after packet 031.
-                if test_mode == 2 :
+                if test_mode == 2:
                     if sequence == 31 and held_packet is not None:
+                        held_sequence, held_timestamp = header_struct.unpack(
+                            held_packet[:header_struct.size]
+                        )
+
+                        held_send_at = time.perf_counter()
                         held_bytes = sock.sendto(held_packet, destination)
 
                         if held_bytes != len(held_packet):
                             raise RuntimeError("Incomplete UDP send for held packet")
 
                         total_sent_bytes += held_bytes
+
+                        held_deadline = (
+                                stream_start + (held_sequence + 1) * window_seconds
+                        )
+
+                        send_records.append({
+                            "sequence": held_sequence,
+                            "send_type": "reordered",
+                            "timestamp_at": held_timestamp,
+                            "send_call_at": held_send_at,
+                            "scheduled_at": held_deadline,
+                            "schedule_lateness_ms": (
+                                                            held_send_at - held_deadline
+                                                    ) * 1000,
+                            "packet_bytes": held_bytes,
+                            "payload_bytes": len(held_packet) - header_struct.size,
+                        })
+
                         held_packet = None
 
                         print("TEST: packet 030 sent after packet 031")
-
                 #test kodu (packet duplication)
                 if test_mode == 3:
                     if sequence == 20:
+                        duplicate_send_at = time.perf_counter()
                         duplicate_bytes = sock.sendto(packet, destination)
 
                         if duplicate_bytes != len(packet):
@@ -209,9 +245,20 @@ def run_sender(
 
                         total_sent_bytes += duplicate_bytes
 
+                        send_records.append({
+                            "sequence": sequence,
+                            "send_type": "duplicate",
+                            "timestamp_at": sent_at,
+                            "send_call_at": duplicate_send_at,
+                            "scheduled_at": deadline,
+                            "schedule_lateness_ms": None,
+                            "packet_bytes": duplicate_bytes,
+                            "payload_bytes": len(payload),
+                        })
+
                         print("TEST: packet 020 intentionally duplicated")
 
-                scheduling_lateness_ms = (sent_at - deadline) * 1000
+                scheduling_lateness_ms = (send_call_at - deadline) * 1000
 
                 print(
                     f"Sent packet {sequence:03d} | "
@@ -224,8 +271,9 @@ def run_sender(
         print("\nSender completed.")
         print(f"Planned packets: {packet_count}")
         print(f"Total application bytes sent: {total_sent_bytes}")
+        print(f"Actual UDP sends: {len(send_records)}")
 
-        return packet_count, original_payloads
+        return packet_count, original_payloads, send_records
 
     finally:
         reader.close()
