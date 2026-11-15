@@ -59,8 +59,125 @@ static void check_auth_failure(
     );
 }
 
+static void test_known_answers(void)
+{
+    const uint8_t key[ASCON_AEAD_KEY_BYTES] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
+    };
+
+    const uint8_t nonce[ASCON_AEAD_NONCE_BYTES] = {
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+        0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F
+    };
+
+    const uint8_t plaintext[] = {0x20};
+    const uint8_t aad[] = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35};
+
+    const uint8_t expected_1[] = {
+        0x4F, 0x9C, 0x27, 0x82, 0x11, 0xBE, 0xC9, 0x31,
+        0x6B, 0xF6, 0x8F, 0x46, 0xEE, 0x8B, 0x2E, 0xC6
+    };
+
+    const uint8_t expected_2[] = {
+        0xCC, 0xCB, 0x67, 0x4F, 0xE1, 0x8A, 0x09, 0xA2,
+        0x85, 0xD6, 0xAB, 0x11, 0xB3, 0x56, 0x75, 0xC0
+    };
+
+    const uint8_t expected_40[] = {
+        0x93, 0x51, 0x8E, 0xAF, 0x9B, 0x6E, 0xB9, 0x60,
+        0xF7, 0xC4, 0x52, 0x8F, 0x77, 0xCA, 0x1D, 0xAE,
+        0xF1
+    };
+
+    const struct {
+        unsigned int count;
+        const uint8_t *plaintext;
+        size_t plaintext_len;
+        const uint8_t *aad;
+        size_t aad_len;
+        const uint8_t *expected;
+        size_t expected_len;
+    } vectors[] = {
+        {1, NULL, 0, NULL, 0, expected_1, sizeof(expected_1)},
+        {2, NULL, 0, aad, 1, expected_2, sizeof(expected_2)},
+        {40, plaintext, sizeof(plaintext), aad, sizeof(aad),
+         expected_40, sizeof(expected_40)}
+    };
+
+    for (size_t i = 0; i < sizeof(vectors) / sizeof(vectors[0]); ++i) {
+        uint8_t ciphertext[17] = {0};
+        uint8_t recovered[1] = {0};
+        size_t ciphertext_len = 0;
+        size_t recovered_len = 0;
+        char description[80];
+
+        ascon_aead_status status = ascon_aead_encrypt(
+            ciphertext,
+            sizeof(ciphertext),
+            &ciphertext_len,
+            vectors[i].plaintext,
+            vectors[i].plaintext_len,
+            vectors[i].aad,
+            vectors[i].aad_len,
+            key,
+            nonce
+        );
+
+        snprintf(
+            description, sizeof(description),
+            "KAT Count %u: encryption", vectors[i].count
+        );
+
+        CHECK(
+            status == ASCON_AEAD_OK &&
+            ciphertext_len == vectors[i].expected_len &&
+            memcmp(
+                ciphertext,
+                vectors[i].expected,
+                vectors[i].expected_len
+            ) == 0,
+            description
+        );
+
+        /* Decrypt the published ciphertext independently. */
+        status = ascon_aead_decrypt(
+            recovered,
+            sizeof(recovered),
+            &recovered_len,
+            vectors[i].expected,
+            vectors[i].expected_len,
+            vectors[i].aad,
+            vectors[i].aad_len,
+            key,
+            nonce
+        );
+
+        int passed =
+            status == ASCON_AEAD_OK &&
+            recovered_len == vectors[i].plaintext_len;
+
+        if (passed && recovered_len > 0) {
+            passed = memcmp(
+                recovered,
+                vectors[i].plaintext,
+                recovered_len
+            ) == 0;
+        }
+
+        snprintf(
+            description, sizeof(description),
+            "KAT Count %u: decryption", vectors[i].count
+        );
+
+        CHECK(passed, description);
+    }
+}
+
 int main(void)
 {
+    test_known_answers();
+
     uint8_t key[ASCON_AEAD_KEY_BYTES];
     uint8_t nonce[ASCON_AEAD_NONCE_BYTES];
     uint8_t message[128];
