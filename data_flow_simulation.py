@@ -37,8 +37,8 @@ RECEIVER_PORT = 65535
 # 6: Modify packet 10's timestamp (AAD) to test header authentication.
 # 7: Modify packet 10's nonce to test nonce validation.
 # Modes 4-7 require encryption; the modified packet must be rejected.
-TEST_MODE = 7
-CRYPTO_MODE = "aes-gcm"  # "none", "ascon", "aes-gcm"
+TEST_MODE = 0
+CRYPTO_MODE = "ascon"  # "none", "ascon", "aes-gcm"
 
 NONCE_BYTES = {
     "ascon": 16,
