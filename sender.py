@@ -4,6 +4,7 @@ import struct
 
 import numpy as np
 import pyedflib
+from crypto_bridge import CryptoBridge
 
 
 def run_sender(
@@ -19,6 +20,10 @@ def run_sender(
         #1 --> Packet Loss Test
         #2 --> Packet Out of Order Test
         #3 --> Packet Duplication Test
+
+    crypto_mode="none",
+    session_key=None,
+    nonce_prefix=None,
 ):
     if test_mode not in (0, 1, 2, 3):
         raise ValueError("test_mode must be 0, 1, 2 or 3")
@@ -31,6 +36,27 @@ def run_sender(
 
     if len(set(channel_names)) != len(channel_names):
         raise ValueError("Selected channel names must be unique")
+
+
+    if crypto_mode not in ("none", "ascon", "aes-gcm"):
+        raise ValueError("Unsupported crypto mode")
+
+    crypto = None
+
+    if crypto_mode != "none":
+        crypto = CryptoBridge(crypto_mode)
+
+        if not isinstance(session_key, bytes) or len(session_key) != 16:
+            raise ValueError("Session key must be 16 bytes")
+
+        expected_prefix_bytes = crypto.nonce_bytes - 4
+
+        if (
+            not isinstance(nonce_prefix, bytes)
+            or len(nonce_prefix) != expected_prefix_bytes
+        ):
+            raise ValueError("Invalid nonce prefix")
+
 
     window_seconds = samples_per_window / sample_rate
     payload_bytes = len(channel_names) * samples_per_window * 2
@@ -93,6 +119,9 @@ def run_sender(
                 f"Test mode {test_mode} requires at least "
                 f"{minimum_packets[test_mode]} packets"
             )
+
+        if packet_count > 2**32:
+            raise ValueError("Packet count exceeds the sequence number range")
 
         print(f"\nSelected channels: {channel_names}")
         print(f"Window: {window_seconds * 1000} ms")
@@ -170,7 +199,26 @@ def run_sender(
                         continue
 
                 header = header_struct.pack(sequence, sent_at)
-                packet = header + payload
+
+                if crypto is None:
+                    packet = header + payload
+                else:
+                    nonce = (
+                            nonce_prefix
+                            + sequence.to_bytes(4, "big")
+                    )
+
+                    ciphertext = crypto.encrypt(
+                        payload,
+                        session_key,
+                        nonce,
+                        aad=header,
+                    )
+
+                    packet = header + nonce + ciphertext
+
+                if len(packet) > 65507:
+                    raise ValueError("Packet exceeds the IPv4 UDP payload limit")
 
                 #(packet_reordering)
                 if test_mode == 2:
@@ -228,7 +276,7 @@ def run_sender(
                                                             held_send_at - held_deadline
                                                     ) * 1000,
                             "packet_bytes": held_bytes,
-                            "payload_bytes": len(held_packet) - header_struct.size,
+                            "payload_bytes": payload_bytes,
                         })
 
                         held_packet = None

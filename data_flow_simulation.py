@@ -7,6 +7,7 @@ from receiver import run_receiver
 
 import numpy as np
 import csv
+import secrets
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -26,7 +27,15 @@ SIMULATION_SECONDS = 5
 RECEIVER_HOST = "127.0.0.1"
 RECEIVER_PORT = 65535
 
-TEST_MODE = 0
+TEST_MODE = 3
+CRYPTO_MODE = "none"  # "none", "ascon", "aes-gcm"
+
+NONCE_BYTES = {
+    "ascon": 16,
+    "aes-gcm": 12,
+}
+
+SEQUENCE_BYTES = 4
 
 def write_csv(file_path, rows, fieldnames):
     with file_path.open(
@@ -43,6 +52,22 @@ def write_csv(file_path, rows, fieldnames):
         writer.writerows(rows)
 
 def main():
+
+    if CRYPTO_MODE not in ("none", "ascon", "aes-gcm"):
+        raise ValueError("CRYPTO_MODE must be none, ascon or aes-gcm")
+
+    # Generate once in the parent process and share with both endpoints.
+    session_key = None
+    nonce_prefix = None
+
+    if CRYPTO_MODE != "none":
+        session_key = secrets.token_bytes(16)
+
+        prefix_bytes = NONCE_BYTES[CRYPTO_MODE] - SEQUENCE_BYTES
+        nonce_prefix = secrets.token_bytes(prefix_bytes)
+
+    print(f"Crypto mode: {CRYPTO_MODE}")
+
     result_queue = Queue()
     receiver_ready = Event()
     expected_packets = Value("q", -1)
@@ -58,6 +83,9 @@ def main():
             "ready_event": receiver_ready,
             "expected_packets": expected_packets,
             "result_queue": result_queue,
+            "crypto_mode": CRYPTO_MODE,
+            "session_key": session_key,
+            "nonce_prefix": nonce_prefix,
         },
     )
 
@@ -76,6 +104,9 @@ def main():
             receiver_host=RECEIVER_HOST,
             receiver_port=RECEIVER_PORT,
             test_mode=TEST_MODE,
+            crypto_mode=CRYPTO_MODE,
+            session_key=session_key,
+            nonce_prefix=nonce_prefix,
         )
 
         expected_packets.value = packet_count
@@ -144,6 +175,8 @@ def main():
             and receiver_stats["duplicate_packets"] == expected_duplicates
             and receiver_stats["out_of_order_packets"] == expected_out_of_order
             and receiver_stats["rejected_size_packets"] == 0
+            and receiver_stats["rejected_auth_packets"] == 0
+            and receiver_stats["rejected_nonce_packets"] == 0
         )
 
         # Use only accepted unique packets for latency statistics.
@@ -242,6 +275,9 @@ def main():
                 if transfer_times else None
             ),
             "test_passed": test_passed,
+            "crypto_mode": CRYPTO_MODE,
+            "rejected_auth_packets": receiver_stats["rejected_auth_packets"],
+            "rejected_nonce_packets": receiver_stats["rejected_nonce_packets"],
         }
 
         write_csv(
