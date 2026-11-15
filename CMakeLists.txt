@@ -35,3 +35,16 @@ set_target_properties(ascon_aead PROPERTIES
         C_STANDARD_REQUIRED YES
         C_EXTENSIONS NO
 )
+
+add_executable(test_ascon test_ascon.c)
+
+target_link_libraries(test_ascon PRIVATE ascon_aead)
+
+set_target_properties(test_ascon PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)
+
+enable_testing()
+add_test(NAME ascon_tests COMMAND test_ascon)
