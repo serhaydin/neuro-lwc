@@ -1,0 +1,2 @@
+﻿   text	   data	    bss	    dec	    hex	filename
+  30444	    224	   9184	  39852	   9bac	cmake-build-release\footprint_aes_gcm.exe

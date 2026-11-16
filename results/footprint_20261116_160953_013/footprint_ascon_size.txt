@@ -1,0 +1,2 @@
+﻿   text	   data	    bss	    dec	    hex	filename
+  37452	    224	    320	  37996	   946c	cmake-build-release\footprint_ascon.exe

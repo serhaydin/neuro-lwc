@@ -132,3 +132,29 @@ set_target_properties(benchmark_crypto PROPERTIES
         C_STANDARD_REQUIRED YES
         C_EXTENSIONS NO
 )
+
+add_executable(footprint_ascon footprint_crypto.c)
+
+target_compile_definitions(footprint_ascon PRIVATE
+        FOOTPRINT_ASCON
+)
+
+target_link_libraries(footprint_ascon PRIVATE
+        ascon_aead
+)
+
+add_executable(footprint_aes_gcm footprint_crypto.c)
+
+target_compile_definitions(footprint_aes_gcm PRIVATE
+        FOOTPRINT_AES_GCM
+)
+
+target_link_libraries(footprint_aes_gcm PRIVATE
+        aes_gcm
+)
+
+set_target_properties(footprint_ascon footprint_aes_gcm PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)
