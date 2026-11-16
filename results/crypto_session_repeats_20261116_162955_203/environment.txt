@@ -1,0 +1,71 @@
+﻿Recorded at: 2026-11-16T16:33:03.6256820+03:00
+Mode: session context reuse
+
+=== CPU ===
+
+
+Name                      : AMD Ryzen 7 7840HS w/ Radeon 780M Graphics     
+NumberOfCores             : 8
+NumberOfLogicalProcessors : 16
+
+
+
+
+=== OS ===
+
+
+Caption        : Microsoft Windows 11 Home Single Language
+Version        : 10.0.26300
+OSArchitecture : 64 bit
+
+
+
+
+=== Compiler ===
+gcc.exe (GCC) 15.2.0
+Copyright (C) 2025 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+=== Build flags ===
+CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_C_COMPILER:FILEPATH=C:/Users/HP/AppData/Local/Programs/CLion/bin/mingw/bin/gcc.exe
+CMAKE_C_FLAGS:STRING=
+CMAKE_C_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+CMAKE_GENERATOR:INTERNAL=Ninja
+
+=== Git commit before recording ===
+2bd9a300a5c340077caab8b3641e5a3501fafbfc
+=== Working tree ===
+ M CMakeLists.txt
+?? benchmark_crypto_session.c
+?? inspect_crypto_memory.c
+?? results/crypto_session_repeats_20261116_162955_203/
+?? results/stack_20261116_161625_029/
+
+=== Executable SHA256 ===
+
+
+Algorithm : SHA256
+Hash      : 2509924DF9421AA04BE53ECBC46D93ADEF03B52822A25D651100E5A7E3DE984B
+Path      : C:\Users\HP\Desktop\NetSec\Project\neuro-lwc\cmake-build-release\benchmark_crypto_session.exe
+
+
+
+
+=== Power scheme ===
+Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Dengeli)
+
+=== Measurement configuration ===
+Payload: 128 bytes; AAD: 12 bytes; tag: 16 bytes
+Five runs; 30 measured rounds per algorithm per run
+1000 packets per round; 1000 warm-up packets per algorithm
+Timer: QueryPerformanceCounter
+AES hardware acceleration: disabled
+AES encryption and decryption contexts: separate, reused
+AES context allocation, key setup and free: outside timing
+Nonce preparation and payload validation: outside timing
+Modified-tag rejection check: outside timing
+Ascon: existing one-shot wrapper
+Environment recorded after the measurements.

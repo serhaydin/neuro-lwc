@@ -189,7 +189,6 @@ def run_receiver(
 
             if out_of_order:
                 out_of_order_packets += 1
-                print(f"Out-of-order packet {sequence:03d}")
 
             seen_sequences.add(sequence)
             highest_sequence = max(highest_sequence, sequence)
@@ -204,6 +203,17 @@ def run_receiver(
 
             received_windows.append((sequence, window.copy()))
 
+            # This packet's validated EEG window is now available.
+            ready_at = time.perf_counter()
+
+            receiver_processing_ms = (
+                ready_at - received_at
+            ) * 1000
+
+            packet_ready_ms = (
+                ready_at - sent_at
+            ) * 1000
+
             receive_records.append({
                 "sequence": sequence,
                 "status": "out_of_order" if out_of_order else "accepted",
@@ -211,7 +221,13 @@ def run_receiver(
                 "received_at": received_at,
                 "transfer_ms": transfer_ms,
                 "packet_bytes": len(packet),
+                "ready_at": ready_at,
+                "receiver_processing_ms": receiver_processing_ms,
+                "packet_ready_ms": packet_ready_ms,
             })
+
+            if out_of_order:
+                print(f"Out-of-order packet {sequence:03d}")
 
             print(
                 f"Received packet {sequence:03d} | "
