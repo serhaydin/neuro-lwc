@@ -152,6 +152,48 @@ def main():
         receive_records = receiver_result["records"]
         receiver_stats = receiver_result["stats"]
 
+        window_seconds = SAMPLES_PER_WINDOW / SAMPLE_RATE
+
+        # Keep the original send record for each sequence.
+        # A duplicated transmission must not replace that record.
+        original_send_records = {}
+
+        for record in send_records:
+            if record["send_type"] != "duplicate":
+                sequence = record["sequence"]
+
+                if sequence in original_send_records:
+                    raise RuntimeError(
+                        f"Multiple original send records: {sequence}"
+                    )
+
+                original_send_records[sequence] = record
+
+        for record in receive_records:
+            if record["status"] not in ("accepted", "out_of_order"):
+                continue
+
+            sequence = record["sequence"]
+            sender_record = original_send_records[sequence]
+
+            # scheduled_at is the planned end of this acquisition window.
+            window_started_at = (
+                sender_record["scheduled_at"] - window_seconds
+            )
+
+            record["window_started_at"] = window_started_at
+
+            record["window_start_to_ready_ms"] = (
+                record["ready_at"] - window_started_at
+            ) * 1000
+
+            # Signed difference: actual pre-encryption timestamp
+            # minus the planned window-completion time.
+            record["pre_encrypt_schedule_offset_ms"] = (
+                sender_record["timestamp_at"]
+                - sender_record["scheduled_at"]
+            ) * 1000
+
         # Son paketten sonra receiver'ın timeout ile kapanmasını bekle.
         receiver_process.join(timeout=15.0)
 
@@ -237,6 +279,24 @@ def main():
             if record["status"] in ("accepted", "out_of_order")
         ]
 
+        receiver_processing_times = [
+            record["receiver_processing_ms"]
+            for record in receive_records
+            if record["status"] in ("accepted", "out_of_order")
+        ]
+
+        packet_ready_times = [
+            record["packet_ready_ms"]
+            for record in receive_records
+            if record["status"] in ("accepted", "out_of_order")
+        ]
+
+        window_start_to_ready_times = [
+            record["window_start_to_ready_ms"]
+            for record in receive_records
+            if record["status"] in ("accepted", "out_of_order")
+        ]
+
         run_id = (
             datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
             + "_"
@@ -276,6 +336,12 @@ def main():
                 "received_at",
                 "transfer_ms",
                 "packet_bytes",
+                "ready_at",
+                "receiver_processing_ms",
+                "packet_ready_ms",
+                "window_started_at",
+                "window_start_to_ready_ms",
+                "pre_encrypt_schedule_offset_ms",
             ],
         )
 
@@ -330,6 +396,37 @@ def main():
             "rejected_auth_packets": receiver_stats["rejected_auth_packets"],
             "rejected_nonce_packets": receiver_stats["rejected_nonce_packets"],
         }
+
+        latency_metrics = {
+            "receiver_processing": receiver_processing_times,
+            "packet_ready": packet_ready_times,
+            "window_start_to_ready": window_start_to_ready_times,
+        }
+
+        for name, values in latency_metrics.items():
+            summary[f"{name}_mean_ms"] = (
+                float(np.mean(values)) if values else None
+            )
+            summary[f"{name}_p95_ms"] = (
+                float(np.percentile(values, 95)) if values else None
+            )
+            summary[f"{name}_max_ms"] = (
+                float(np.max(values)) if values else None
+            )
+
+        print("\nLatency statistics for accepted unique packets:")
+
+        for name, values in latency_metrics.items():
+            if values:
+                print(
+                    f"{name}: "
+                    f"mean={summary[f'{name}_mean_ms']:.4f} ms | "
+                    f"p95={summary[f'{name}_p95_ms']:.4f} ms | "
+                    f"max={summary[f'{name}_max_ms']:.4f} ms"
+                )
+            else:
+                print(f"{name}: no accepted packets")
+
 
         write_csv(
             output_dir / "summary.csv",

@@ -1,0 +1,8 @@
+[PASS] ascon: encrypt through CryptoBridge
+[PASS] ascon: recover original payload
+[PASS] ascon: reject tampering
+[PASS] aes-gcm: encrypt through CryptoBridge
+[PASS] aes-gcm: recover original payload
+[PASS] aes-gcm: reject tampering
+
+All 6 CryptoBridge checks passed.
