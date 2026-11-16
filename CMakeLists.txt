@@ -119,3 +119,84 @@ set_target_properties(neuro_crypto PROPERTIES
         PREFIX ""
         OUTPUT_NAME "neuro_crypto"
 )
+
+add_executable(benchmark_crypto benchmark_crypto.c)
+
+target_link_libraries(benchmark_crypto PRIVATE
+        ascon_aead
+        aes_gcm
+)
+
+set_target_properties(benchmark_crypto PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)
+
+add_executable(footprint_ascon footprint_crypto.c)
+
+target_compile_definitions(footprint_ascon PRIVATE
+        FOOTPRINT_ASCON
+)
+
+target_link_libraries(footprint_ascon PRIVATE
+        ascon_aead
+)
+
+add_executable(footprint_aes_gcm footprint_crypto.c)
+
+target_compile_definitions(footprint_aes_gcm PRIVATE
+        FOOTPRINT_AES_GCM
+)
+
+target_link_libraries(footprint_aes_gcm PRIVATE
+        aes_gcm
+)
+
+set_target_properties(footprint_ascon footprint_aes_gcm PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)
+
+add_executable(inspect_crypto_memory inspect_crypto_memory.c)
+
+target_include_directories(inspect_crypto_memory PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mbedtls/include
+)
+
+target_compile_definitions(inspect_crypto_memory PRIVATE
+        MBEDTLS_CONFIG_FILE="mbedtls_config.h"
+)
+
+set_target_properties(inspect_crypto_memory PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)
+
+add_executable(benchmark_crypto_session
+        benchmark_crypto_session.c
+)
+
+target_link_libraries(benchmark_crypto_session PRIVATE
+        ascon_aead
+        aes_gcm
+        mbedcrypto
+)
+
+target_include_directories(benchmark_crypto_session PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mbedtls/include
+)
+
+target_compile_definitions(benchmark_crypto_session PRIVATE
+        MBEDTLS_CONFIG_FILE="mbedtls_config.h"
+)
+
+set_target_properties(benchmark_crypto_session PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)

@@ -8,6 +8,7 @@ from receiver import run_receiver
 import numpy as np
 import csv
 import secrets
+import argparse
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -62,21 +63,42 @@ def write_csv(file_path, rows, fieldnames):
         writer.writerows(rows)
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Run an EEG streaming validation scenario."
+    )
 
-    if CRYPTO_MODE not in ("none", "ascon", "aes-gcm"):
-        raise ValueError("CRYPTO_MODE must be none, ascon or aes-gcm")
+    parser.add_argument(
+        "--crypto-mode",
+        choices=("none", "ascon", "aes-gcm"),
+        default=CRYPTO_MODE,
+    )
+
+    parser.add_argument(
+        "--test-mode",
+        type=int,
+        choices=range(8),
+        default=TEST_MODE,
+    )
+
+    args = parser.parse_args()
+
+    crypto_mode = args.crypto_mode
+    test_mode = args.test_mode
+
+    if crypto_mode == "none" and test_mode >= 4:
+        parser.error("Test modes 4-7 require encryption.")
 
     # Generate once in the parent process and share with both endpoints.
     session_key = None
     nonce_prefix = None
 
-    if CRYPTO_MODE != "none":
+    if crypto_mode != "none":
         session_key = secrets.token_bytes(16)
 
-        prefix_bytes = NONCE_BYTES[CRYPTO_MODE] - SEQUENCE_BYTES
+        prefix_bytes = NONCE_BYTES[crypto_mode] - SEQUENCE_BYTES
         nonce_prefix = secrets.token_bytes(prefix_bytes)
 
-    print(f"Crypto mode: {CRYPTO_MODE}")
+    print(f"Crypto mode: {crypto_mode}")
 
     result_queue = Queue()
     receiver_ready = Event()
@@ -93,7 +115,7 @@ def main():
             "ready_event": receiver_ready,
             "expected_packets": expected_packets,
             "result_queue": result_queue,
-            "crypto_mode": CRYPTO_MODE,
+            "crypto_mode": crypto_mode,
             "session_key": session_key,
             "nonce_prefix": nonce_prefix,
         },
@@ -113,8 +135,8 @@ def main():
             sim_seconds=SIMULATION_SECONDS,
             receiver_host=RECEIVER_HOST,
             receiver_port=RECEIVER_PORT,
-            test_mode=TEST_MODE,
-            crypto_mode=CRYPTO_MODE,
+            test_mode=test_mode,
+            crypto_mode=crypto_mode,
             session_key=session_key,
             nonce_prefix=nonce_prefix,
         )
@@ -129,6 +151,48 @@ def main():
         received_windows = receiver_result["windows"]
         receive_records = receiver_result["records"]
         receiver_stats = receiver_result["stats"]
+
+        window_seconds = SAMPLES_PER_WINDOW / SAMPLE_RATE
+
+        # Keep the original send record for each sequence.
+        # A duplicated transmission must not replace that record.
+        original_send_records = {}
+
+        for record in send_records:
+            if record["send_type"] != "duplicate":
+                sequence = record["sequence"]
+
+                if sequence in original_send_records:
+                    raise RuntimeError(
+                        f"Multiple original send records: {sequence}"
+                    )
+
+                original_send_records[sequence] = record
+
+        for record in receive_records:
+            if record["status"] not in ("accepted", "out_of_order"):
+                continue
+
+            sequence = record["sequence"]
+            sender_record = original_send_records[sequence]
+
+            # scheduled_at is the planned end of this acquisition window.
+            window_started_at = (
+                sender_record["scheduled_at"] - window_seconds
+            )
+
+            record["window_started_at"] = window_started_at
+
+            record["window_start_to_ready_ms"] = (
+                record["ready_at"] - window_started_at
+            ) * 1000
+
+            # Signed difference: actual pre-encryption timestamp
+            # minus the planned window-completion time.
+            record["pre_encrypt_schedule_offset_ms"] = (
+                sender_record["timestamp_at"]
+                - sender_record["scheduled_at"]
+            ) * 1000
 
         # Son paketten sonra receiver'ın timeout ile kapanmasını bekle.
         receiver_process.join(timeout=15.0)
@@ -175,19 +239,19 @@ def main():
         print(f"Unexpected sequences: {unexpected_sequences}")
 
         expected_missing = (
-            [10] if TEST_MODE in (1, 4, 5, 6, 7) else []
+            [10] if test_mode in (1, 4, 5, 6, 7) else []
         )
-        expected_duplicates = 1 if TEST_MODE == 3 else 0
-        expected_out_of_order = 1 if TEST_MODE == 2 else 0
-        expected_auth_failures = 1 if TEST_MODE in (4, 5, 6) else 0
-        expected_nonce_failures = 1 if TEST_MODE == 7 else 0
+        expected_duplicates = 1 if test_mode == 3 else 0
+        expected_out_of_order = 1 if test_mode == 2 else 0
+        expected_auth_failures = 1 if test_mode in (4, 5, 6) else 0
+        expected_nonce_failures = 1 if test_mode == 7 else 0
 
         expected_unique = packet_count - len(expected_missing)
 
         # Loss mode skips a send; duplication mode adds a send.
         expected_sends = (
                 packet_count
-                - (1 if TEST_MODE == 1 else 0)
+                - (1 if test_mode == 1 else 0)
                 + expected_duplicates
         )
 
@@ -215,6 +279,24 @@ def main():
             if record["status"] in ("accepted", "out_of_order")
         ]
 
+        receiver_processing_times = [
+            record["receiver_processing_ms"]
+            for record in receive_records
+            if record["status"] in ("accepted", "out_of_order")
+        ]
+
+        packet_ready_times = [
+            record["packet_ready_ms"]
+            for record in receive_records
+            if record["status"] in ("accepted", "out_of_order")
+        ]
+
+        window_start_to_ready_times = [
+            record["window_start_to_ready_ms"]
+            for record in receive_records
+            if record["status"] in ("accepted", "out_of_order")
+        ]
+
         run_id = (
             datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
             + "_"
@@ -224,7 +306,7 @@ def main():
         output_dir = (
             Path(__file__).resolve().parent
             / "results"
-            / f"{run_id}_mode{TEST_MODE}"
+            / f"{run_id}_mode{test_mode}"
         )
 
         output_dir.mkdir(parents=True, exist_ok=False)
@@ -254,12 +336,18 @@ def main():
                 "received_at",
                 "transfer_ms",
                 "packet_bytes",
+                "ready_at",
+                "receiver_processing_ms",
+                "packet_ready_ms",
+                "window_started_at",
+                "window_start_to_ready_ms",
+                "pre_encrypt_schedule_offset_ms",
             ],
         )
 
         summary = {
             "run_id": run_id,
-            "test_mode": TEST_MODE,
+            "test_mode": test_mode,
             "edf_file": EDF_PATH.name,
             "channels": ";".join(CHANNEL_NAMES),
             "sample_rate_hz": SAMPLE_RATE,
@@ -304,10 +392,41 @@ def main():
                 if transfer_times else None
             ),
             "test_passed": test_passed,
-            "crypto_mode": CRYPTO_MODE,
+            "crypto_mode": crypto_mode,
             "rejected_auth_packets": receiver_stats["rejected_auth_packets"],
             "rejected_nonce_packets": receiver_stats["rejected_nonce_packets"],
         }
+
+        latency_metrics = {
+            "receiver_processing": receiver_processing_times,
+            "packet_ready": packet_ready_times,
+            "window_start_to_ready": window_start_to_ready_times,
+        }
+
+        for name, values in latency_metrics.items():
+            summary[f"{name}_mean_ms"] = (
+                float(np.mean(values)) if values else None
+            )
+            summary[f"{name}_p95_ms"] = (
+                float(np.percentile(values, 95)) if values else None
+            )
+            summary[f"{name}_max_ms"] = (
+                float(np.max(values)) if values else None
+            )
+
+        print("\nLatency statistics for accepted unique packets:")
+
+        for name, values in latency_metrics.items():
+            if values:
+                print(
+                    f"{name}: "
+                    f"mean={summary[f'{name}_mean_ms']:.4f} ms | "
+                    f"p95={summary[f'{name}_p95_ms']:.4f} ms | "
+                    f"max={summary[f'{name}_max_ms']:.4f} ms"
+                )
+            else:
+                print(f"{name}: no accepted packets")
+
 
         write_csv(
             output_dir / "summary.csv",
