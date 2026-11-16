@@ -119,3 +119,16 @@ set_target_properties(neuro_crypto PROPERTIES
         PREFIX ""
         OUTPUT_NAME "neuro_crypto"
 )
+
+add_executable(benchmark_crypto benchmark_crypto.c)
+
+target_link_libraries(benchmark_crypto PRIVATE
+        ascon_aead
+        aes_gcm
+)
+
+set_target_properties(benchmark_crypto PROPERTIES
+        C_STANDARD 99
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)
