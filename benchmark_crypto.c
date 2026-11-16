@@ -193,6 +193,29 @@ static void run_batch(
         }
     }
 
+    /* Check rejection outside the timed sections. */
+    ciphertexts[0][PAYLOAD_BYTES + TAG_BYTES - 1] ^= 0x01;
+
+    size_t rejected_len = 999;
+
+    int rejected_status = alg->decrypt(
+        recovered[0],
+        sizeof(recovered[0]),
+        &rejected_len,
+        ciphertexts[0],
+        encrypted_lengths[0],
+        aad,
+        sizeof(aad),
+        key,
+        nonces[0]
+    );
+
+    ciphertexts[0][PAYLOAD_BYTES + TAG_BYTES - 1] ^= 0x01;
+
+    if (rejected_status == 0 || rejected_len != 0) {
+        fail("Benchmark accepted a modified authentication tag.");
+    }
+
     /* Round zero is warm-up and is not reported. */
     if (round == 0) {
         return;
