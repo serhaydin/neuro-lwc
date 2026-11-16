@@ -1,0 +1,30 @@
+[PASS] KAT empty input: encryption
+[PASS] KAT empty input: decryption
+[PASS] KAT 16-byte input: encryption
+[PASS] KAT 16-byte input: decryption
+[PASS] KAT 60-byte input with AAD: encryption
+[PASS] KAT 60-byte input with AAD: decryption
+[PASS] Encrypt 128-byte payload
+[PASS] Decrypt and recover original payload
+[PASS] Reject modified ciphertext and clear plaintext
+[PASS] Reject modified tag and clear plaintext
+[PASS] Reject modified AAD
+[PASS] Reject wrong key
+[PASS] Reject wrong nonce
+[PASS] Reject small encryption buffer
+[PASS] Reject small decryption buffer
+[PASS] Reject ciphertext shorter than tag
+[PASS] Reject NULL plaintext with nonzero length
+[PASS] Reject NULL AAD with nonzero length
+[PASS] Reject NULL output-length pointer
+[PASS] Round trip: 0 bytes, empty AAD
+[PASS] Round trip: 1 bytes, empty AAD
+[PASS] Round trip: 15 bytes, empty AAD
+[PASS] Round trip: 16 bytes, empty AAD
+[PASS] Round trip: 17 bytes, empty AAD
+[PASS] Round trip: 31 bytes, empty AAD
+[PASS] Round trip: 32 bytes, empty AAD
+[PASS] Round trip: 33 bytes, empty AAD
+[PASS] Round trip: 128 bytes, empty AAD
+
+Checks: 28 | Passed: 28 | Failed: 0

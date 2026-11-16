@@ -8,6 +8,7 @@ from receiver import run_receiver
 import numpy as np
 import csv
 import secrets
+import argparse
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -62,21 +63,42 @@ def write_csv(file_path, rows, fieldnames):
         writer.writerows(rows)
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Run an EEG streaming validation scenario."
+    )
 
-    if CRYPTO_MODE not in ("none", "ascon", "aes-gcm"):
-        raise ValueError("CRYPTO_MODE must be none, ascon or aes-gcm")
+    parser.add_argument(
+        "--crypto-mode",
+        choices=("none", "ascon", "aes-gcm"),
+        default=CRYPTO_MODE,
+    )
+
+    parser.add_argument(
+        "--test-mode",
+        type=int,
+        choices=range(8),
+        default=TEST_MODE,
+    )
+
+    args = parser.parse_args()
+
+    crypto_mode = args.crypto_mode
+    test_mode = args.test_mode
+
+    if crypto_mode == "none" and test_mode >= 4:
+        parser.error("Test modes 4-7 require encryption.")
 
     # Generate once in the parent process and share with both endpoints.
     session_key = None
     nonce_prefix = None
 
-    if CRYPTO_MODE != "none":
+    if crypto_mode != "none":
         session_key = secrets.token_bytes(16)
 
-        prefix_bytes = NONCE_BYTES[CRYPTO_MODE] - SEQUENCE_BYTES
+        prefix_bytes = NONCE_BYTES[crypto_mode] - SEQUENCE_BYTES
         nonce_prefix = secrets.token_bytes(prefix_bytes)
 
-    print(f"Crypto mode: {CRYPTO_MODE}")
+    print(f"Crypto mode: {crypto_mode}")
 
     result_queue = Queue()
     receiver_ready = Event()
@@ -93,7 +115,7 @@ def main():
             "ready_event": receiver_ready,
             "expected_packets": expected_packets,
             "result_queue": result_queue,
-            "crypto_mode": CRYPTO_MODE,
+            "crypto_mode": crypto_mode,
             "session_key": session_key,
             "nonce_prefix": nonce_prefix,
         },
@@ -113,8 +135,8 @@ def main():
             sim_seconds=SIMULATION_SECONDS,
             receiver_host=RECEIVER_HOST,
             receiver_port=RECEIVER_PORT,
-            test_mode=TEST_MODE,
-            crypto_mode=CRYPTO_MODE,
+            test_mode=test_mode,
+            crypto_mode=crypto_mode,
             session_key=session_key,
             nonce_prefix=nonce_prefix,
         )
@@ -175,19 +197,19 @@ def main():
         print(f"Unexpected sequences: {unexpected_sequences}")
 
         expected_missing = (
-            [10] if TEST_MODE in (1, 4, 5, 6, 7) else []
+            [10] if test_mode in (1, 4, 5, 6, 7) else []
         )
-        expected_duplicates = 1 if TEST_MODE == 3 else 0
-        expected_out_of_order = 1 if TEST_MODE == 2 else 0
-        expected_auth_failures = 1 if TEST_MODE in (4, 5, 6) else 0
-        expected_nonce_failures = 1 if TEST_MODE == 7 else 0
+        expected_duplicates = 1 if test_mode == 3 else 0
+        expected_out_of_order = 1 if test_mode == 2 else 0
+        expected_auth_failures = 1 if test_mode in (4, 5, 6) else 0
+        expected_nonce_failures = 1 if test_mode == 7 else 0
 
         expected_unique = packet_count - len(expected_missing)
 
         # Loss mode skips a send; duplication mode adds a send.
         expected_sends = (
                 packet_count
-                - (1 if TEST_MODE == 1 else 0)
+                - (1 if test_mode == 1 else 0)
                 + expected_duplicates
         )
 
@@ -224,7 +246,7 @@ def main():
         output_dir = (
             Path(__file__).resolve().parent
             / "results"
-            / f"{run_id}_mode{TEST_MODE}"
+            / f"{run_id}_mode{test_mode}"
         )
 
         output_dir.mkdir(parents=True, exist_ok=False)
@@ -259,7 +281,7 @@ def main():
 
         summary = {
             "run_id": run_id,
-            "test_mode": TEST_MODE,
+            "test_mode": test_mode,
             "edf_file": EDF_PATH.name,
             "channels": ";".join(CHANNEL_NAMES),
             "sample_rate_hz": SAMPLE_RATE,
@@ -304,7 +326,7 @@ def main():
                 if transfer_times else None
             ),
             "test_passed": test_passed,
-            "crypto_mode": CRYPTO_MODE,
+            "crypto_mode": crypto_mode,
             "rejected_auth_packets": receiver_stats["rejected_auth_packets"],
             "rejected_nonce_packets": receiver_stats["rejected_nonce_packets"],
         }
