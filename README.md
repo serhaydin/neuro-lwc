@@ -208,6 +208,88 @@ receiver-side authentication/decryption.
 It is not a measurement of encryption alone or full end-to-end
 processing latency.
 
+### Streaming latency metrics
+
+Only accepted unique packets contribute to latency statistics.
+
+| Metric | Measurement interval |
+|---|---|
+| `transfer_ms` | Sender pre-encryption timestamp to socket reception |
+| `receiver_processing_ms` | Socket reception to validated EEG window availability |
+| `packet_ready_ms` | Sender pre-encryption timestamp to validated EEG window availability |
+| `window_start_to_ready_ms` | Planned simulated acquisition-window start to validated EEG window availability |
+
+`receiver_processing_ms` includes packet validation, authentication/
+decryption where enabled, sequence checks, and EEG window copying.
+It is not a measurement of decryption alone.
+
+`window_start_to_ready_ms` includes the 62.5 ms acquisition window,
+sender scheduling offset, and packet-ready latency. It is calculated
+by matching sender and receiver records by sequence number:
+
+```text
+window_start_to_ready_ms
+= 62.5 + pre_encrypt_schedule_offset_ms + packet_ready_ms
+```
+
+`pre_encrypt_schedule_offset_ms` is the signed difference between
+the sender's pre-encryption timestamp and planned window completion.
+The separate sender field `schedule_lateness_ms` is measured just
+before the send call and must not be added to `packet_ready_ms`,
+because doing so would double-count part of sender processing.
+
+Each experiment's `summary.csv` includes mean, p95, and maximum
+values for transfer, receiver processing, packet readiness, and
+window-start-to-readiness latency.
+
+These measurements describe simulated acquisition and per-packet
+availability. They exclude the final batch sorting/concatenation,
+downstream analysis, and actual sensor or wireless-link behavior.
+
+### Repeated streaming experiments
+
+Build the Debug `neuro_crypto` target before running:
+
+```powershell
+.\.venv\Scripts\python.exe run_streaming_experiments.py
+```
+
+The runner executes six repetitions of the three crypto modes,
+using all six mode-order permutations. Each mode appears twice
+in each execution position.
+
+Each experiment uses test mode 0, a five-second duration, and
+80 packets. There are 18 experiments and 480 packets per mode.
+
+The series directory contains individual logs and `manifest.csv`.
+The manifest references the raw experiment directories and records
+execution order, timestamps, and the crypto DLL SHA256 hash.
+
+Analyze the completed series:
+
+```powershell
+.\.venv\Scripts\python.exe analyze_streaming_experiments.py "SERIES_DIRECTORY"
+```
+
+The analyzer writes:
+
+- `streaming_runs_summary.csv`: one row per experiment.
+- `streaming_modes_summary.csv`: one row per crypto mode.
+
+Across-run standard deviations use the six experiment means.
+`mean_of_run_p95` averages the six experiment percentiles;
+`pooled_p95` describes all 480 measured packets for that mode.
+These quantities are not interchangeable.
+
+The analyzer also counts accepted packets whose
+`window_start_to_ready_ms` exceeds the project's 100 ms comparison
+threshold. Observed compliance in this finite loopback experiment
+does not establish a clinical or hard real-time guarantee.
+
+Streaming measurements use the Debug DLL and original per-operation
+crypto wrappers. They are separate from the Release C benchmarks
+and do not use the session-context benchmark implementation.
+
 ## Cryptographic implementations
 
 - Ascon-AEAD128 reference implementation:
@@ -395,8 +477,11 @@ until cleanup. The selected Ascon C path performs no heap allocation.
 - Executable sections, per-function stack reports, and requested heap
   allocations are separate measurements; peak total RAM usage has
   not been established.
-- The current streaming `transfer_ms` excludes receiver-side
-  authentication/decryption.
+- `transfer_ms` excludes receiver processing; `packet_ready_ms`
+  includes it. Window-based latency includes simulated acquisition
+  and scheduling, but excludes final batch reordering and downstream use.
+- Streaming experiments use the Debug DLL; C benchmarks use Release.
+  Their absolute timings represent different execution paths.
 - Session keys are supplied by the parent process. Authenticated
   ECDH/KDF session establishment remains future work.
 - Energy consumption, long-duration behavior, and load performance
