@@ -1,0 +1,207 @@
+Receiver listening on 127.0.0.1:65535
+Crypto mode: ascon
+File: chb01_01.edf
+Recording duration: 3600.0 seconds
+Available channels: ['FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1', 'FP1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 'FP2-F4', 'F4-C4', 'C4-P4', 'P4-O2', 'FP2-F8', 'F8-T8', 'T8-P8', 'P8-O2', 'FZ-CZ', 'CZ-PZ', 'P7-T7', 'T7-FT9', 'FT9-FT10', 'FT10-T8', 'T8-P8']
+
+Selected channels: ['FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1']
+Window: 62.5 ms
+Payload: 128 bytes
+Packets to send: 80
+Destination: 127.0.0.1:65535
+
+Sent packet 000 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.451 ms
+Sent packet 001 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.234 ms
+Sent packet 002 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.142 ms
+Sent packet 003 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.443 ms
+Sent packet 004 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.449 ms
+Sent packet 005 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.486 ms
+Sent packet 006 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.446 ms
+Sent packet 007 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.331 ms
+Sent packet 008 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.208 ms
+Sent packet 009 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.632 ms
+Sent packet 010 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.154 ms
+Sent packet 011 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.530 ms
+Sent packet 012 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.240 ms
+Sent packet 013 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.138 ms
+Sent packet 014 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.254 ms
+Sent packet 015 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.293 ms
+Sent packet 016 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.183 ms
+Sent packet 017 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.366 ms
+Sent packet 018 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.592 ms
+Sent packet 019 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.422 ms
+Sent packet 020 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.214 ms
+Sent packet 021 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.459 ms
+Sent packet 022 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.992 ms
+Sent packet 023 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.584 ms
+Sent packet 024 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.500 ms
+Sent packet 025 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.546 ms
+Sent packet 026 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.178 ms
+Sent packet 027 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.540 ms
+Sent packet 028 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.309 ms
+Sent packet 029 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.550 ms
+Sent packet 030 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.220 ms
+Sent packet 031 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.245 ms
+Sent packet 032 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.220 ms
+Sent packet 033 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.342 ms
+Sent packet 034 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.405 ms
+Sent packet 035 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.569 ms
+Sent packet 036 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.354 ms
+Sent packet 037 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.341 ms
+Sent packet 038 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.244 ms
+Sent packet 039 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.498 ms
+Sent packet 040 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.307 ms
+Sent packet 041 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.520 ms
+Sent packet 042 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.518 ms
+Sent packet 043 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.299 ms
+Sent packet 044 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.174 ms
+Sent packet 045 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.204 ms
+Sent packet 046 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.605 ms
+Sent packet 047 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.266 ms
+Sent packet 048 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.207 ms
+Sent packet 049 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.415 ms
+Sent packet 050 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.315 ms
+Sent packet 051 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.174 ms
+Sent packet 052 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.342 ms
+Sent packet 053 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.359 ms
+Sent packet 054 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.550 ms
+Sent packet 055 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.116 ms
+Sent packet 056 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.229 ms
+Sent packet 057 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.188 ms
+Sent packet 058 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.418 ms
+Sent packet 059 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.285 ms
+Sent packet 060 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.545 ms
+Sent packet 061 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.857 ms
+Sent packet 062 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.176 ms
+Sent packet 063 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.638 ms
+Sent packet 064 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.313 ms
+Sent packet 065 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.177 ms
+Sent packet 066 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.537 ms
+Sent packet 067 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.303 ms
+Sent packet 068 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.613 ms
+Sent packet 069 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.626 ms
+Sent packet 070 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.646 ms
+Sent packet 071 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.409 ms
+Sent packet 072 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.404 msReceived packet 000 | payload: 128 bytes | total: 172 bytes | transfer: 0.487 ms | shape: (4, 16)
+Received packet 001 | payload: 128 bytes | total: 172 bytes | transfer: 0.164 ms | shape: (4, 16)
+Received packet 002 | payload: 128 bytes | total: 172 bytes | transfer: 0.157 ms | shape: (4, 16)
+Received packet 003 | payload: 128 bytes | total: 172 bytes | transfer: 0.157 ms | shape: (4, 16)
+Received packet 004 | payload: 128 bytes | total: 172 bytes | transfer: 0.144 ms | shape: (4, 16)
+Received packet 005 | payload: 128 bytes | total: 172 bytes | transfer: 0.156 ms | shape: (4, 16)
+Received packet 006 | payload: 128 bytes | total: 172 bytes | transfer: 0.148 ms | shape: (4, 16)
+Received packet 007 | payload: 128 bytes | total: 172 bytes | transfer: 0.154 ms | shape: (4, 16)
+Received packet 008 | payload: 128 bytes | total: 172 bytes | transfer: 0.131 ms | shape: (4, 16)
+Received packet 009 | payload: 128 bytes | total: 172 bytes | transfer: 0.150 ms | shape: (4, 16)
+Received packet 010 | payload: 128 bytes | total: 172 bytes | transfer: 0.152 ms | shape: (4, 16)
+Received packet 011 | payload: 128 bytes | total: 172 bytes | transfer: 0.167 ms | shape: (4, 16)
+Received packet 012 | payload: 128 bytes | total: 172 bytes | transfer: 0.134 ms | shape: (4, 16)
+Received packet 013 | payload: 128 bytes | total: 172 bytes | transfer: 0.149 ms | shape: (4, 16)
+Received packet 014 | payload: 128 bytes | total: 172 bytes | transfer: 0.143 ms | shape: (4, 16)
+Received packet 015 | payload: 128 bytes | total: 172 bytes | transfer: 0.160 ms | shape: (4, 16)
+Received packet 016 | payload: 128 bytes | total: 172 bytes | transfer: 0.148 ms | shape: (4, 16)
+Received packet 017 | payload: 128 bytes | total: 172 bytes | transfer: 0.145 ms | shape: (4, 16)
+Received packet 018 | payload: 128 bytes | total: 172 bytes | transfer: 0.141 ms | shape: (4, 16)
+Received packet 019 | payload: 128 bytes | total: 172 bytes | transfer: 0.147 ms | shape: (4, 16)
+Received packet 020 | payload: 128 bytes | total: 172 bytes | transfer: 0.158 ms | shape: (4, 16)
+Received packet 021 | payload: 128 bytes | total: 172 bytes | transfer: 0.139 ms | shape: (4, 16)
+Received packet 022 | payload: 128 bytes | total: 172 bytes | transfer: 0.189 ms | shape: (4, 16)
+Received packet 023 | payload: 128 bytes | total: 172 bytes | transfer: 0.151 ms | shape: (4, 16)
+Received packet 024 | payload: 128 bytes | total: 172 bytes | transfer: 0.149 ms | shape: (4, 16)
+Received packet 025 | payload: 128 bytes | total: 172 bytes | transfer: 0.191 ms | shape: (4, 16)
+Received packet 026 | payload: 128 bytes | total: 172 bytes | transfer: 0.148 ms | shape: (4, 16)
+Received packet 027 | payload: 128 bytes | total: 172 bytes | transfer: 0.200 ms | shape: (4, 16)
+Received packet 028 | payload: 128 bytes | total: 172 bytes | transfer: 0.138 ms | shape: (4, 16)
+Received packet 029 | payload: 128 bytes | total: 172 bytes | transfer: 0.139 ms | shape: (4, 16)
+Received packet 030 | payload: 128 bytes | total: 172 bytes | transfer: 0.177 ms | shape: (4, 16)
+Received packet 031 | payload: 128 bytes | total: 172 bytes | transfer: 0.149 ms | shape: (4, 16)
+Received packet 032 | payload: 128 bytes | total: 172 bytes | transfer: 0.230 ms | shape: (4, 16)
+Received packet 033 | payload: 128 bytes | total: 172 bytes | transfer: 0.203 ms | shape: (4, 16)
+Received packet 034 | payload: 128 bytes | total: 172 bytes | transfer: 0.151 ms | shape: (4, 16)
+Received packet 035 | payload: 128 bytes | total: 172 bytes | transfer: 0.153 ms | shape: (4, 16)
+Received packet 036 | payload: 128 bytes | total: 172 bytes | transfer: 0.165 ms | shape: (4, 16)
+Received packet 037 | payload: 128 bytes | total: 172 bytes | transfer: 0.160 ms | shape: (4, 16)
+Received packet 038 | payload: 128 bytes | total: 172 bytes | transfer: 0.159 ms | shape: (4, 16)
+Received packet 039 | payload: 128 bytes | total: 172 bytes | transfer: 0.147 ms | shape: (4, 16)
+Received packet 040 | payload: 128 bytes | total: 172 bytes | transfer: 0.165 ms | shape: (4, 16)
+Received packet 041 | payload: 128 bytes | total: 172 bytes | transfer: 0.151 ms | shape: (4, 16)
+Received packet 042 | payload: 128 bytes | total: 172 bytes | transfer: 0.210 ms | shape: (4, 16)
+Received packet 043 | payload: 128 bytes | total: 172 bytes | transfer: 0.162 ms | shape: (4, 16)
+Received packet 044 | payload: 128 bytes | total: 172 bytes | transfer: 0.156 ms | shape: (4, 16)
+Received packet 045 | payload: 128 bytes | total: 172 bytes | transfer: 0.140 ms | shape: (4, 16)
+Received packet 046 | payload: 128 bytes | total: 172 bytes | transfer: 0.163 ms | shape: (4, 16)
+Received packet 047 | payload: 128 bytes | total: 172 bytes | transfer: 0.157 ms | shape: (4, 16)
+Received packet 048 | payload: 128 bytes | total: 172 bytes | transfer: 0.161 ms | shape: (4, 16)
+Received packet 049 | payload: 128 bytes | total: 172 bytes | transfer: 0.179 ms | shape: (4, 16)
+Received packet 050 | payload: 128 bytes | total: 172 bytes | transfer: 0.151 ms | shape: (4, 16)
+Received packet 051 | payload: 128 bytes | total: 172 bytes | transfer: 0.157 ms | shape: (4, 16)
+Received packet 052 | payload: 128 bytes | total: 172 bytes | transfer: 0.161 ms | shape: (4, 16)
+Received packet 053 | payload: 128 bytes | total: 172 bytes | transfer: 0.148 ms | shape: (4, 16)
+Received packet 054 | payload: 128 bytes | total: 172 bytes | transfer: 0.166 ms | shape: (4, 16)
+Received packet 055 | payload: 128 bytes | total: 172 bytes | transfer: 0.163 ms | shape: (4, 16)
+Received packet 056 | payload: 128 bytes | total: 172 bytes | transfer: 0.154 ms | shape: (4, 16)
+Received packet 057 | payload: 128 bytes | total: 172 bytes | transfer: 0.162 ms | shape: (4, 16)
+Received packet 058 | payload: 128 bytes | total: 172 bytes | transfer: 0.169 ms | shape: (4, 16)
+Received packet 059 | payload: 128 bytes | total: 172 bytes | transfer: 0.157 ms | shape: (4, 16)
+Received packet 060 | payload: 128 bytes | total: 172 bytes | transfer: 0.151 ms | shape: (4, 16)
+Received packet 061 | payload: 128 bytes | total: 172 bytes | transfer: 0.189 ms | shape: (4, 16)
+Received packet 062 | payload: 128 bytes | total: 172 bytes | transfer: 0.145 ms | shape: (4, 16)
+Received packet 063 | payload: 128 bytes | total: 172 bytes | transfer: 0.169 ms | shape: (4, 16)
+Received packet 064 | payload: 128 bytes | total: 172 bytes | transfer: 0.165 ms | shape: (4, 16)
+Received packet 065 | payload: 128 bytes | total: 172 bytes | transfer: 0.173 ms | shape: (4, 16)
+Received packet 066 | payload: 128 bytes | total: 172 bytes | transfer: 0.162 ms | shape: (4, 16)
+Received packet 067 | payload: 128 bytes | total: 172 bytes | transfer: 0.177 ms | shape: (4, 16)
+Received packet 068 | payload: 128 bytes | total: 172 bytes | transfer: 0.181 ms | shape: (4, 16)
+Received packet 069 | payload: 128 bytes | total: 172 bytes | transfer: 0.164 ms | shape: (4, 16)
+Received packet 070 | payload: 128 bytes | total: 172 bytes | transfer: 0.200 ms | shape: (4, 16)
+Received packet 071 | payload: 128 bytes | total: 172 bytes | transfer: 0.188 ms | shape: (4, 16)
+Received packet 072 | payload: 128 bytes | total: 172 bytes | transfer: 0.146 ms | shape: (4, 16)
+Received packet 073 | payload: 128 bytes | total: 172 bytes | transfer: 0.165 ms | shape: (4, 16)
+Received packet 074 | payload: 128 bytes | total: 172 bytes | transfer: 0.152 ms | shape: (4, 16)
+Received packet 075 | payload: 128 bytes | total: 172 bytes | transfer: 0.144 ms | shape: (4, 16)
+Received packet 076 | payload: 128 bytes | total: 172 bytes | transfer: 0.154 ms | shape: (4, 16)
+Received packet 077 | payload: 128 bytes | total: 172 bytes | transfer: 0.128 ms | shape: (4, 16)
+Received packet 078 | payload: 128 bytes | total: 172 bytes | transfer: 0.153 ms | shape: (4, 16)
+Received packet 079 | payload: 128 bytes | total: 172 bytes | transfer: 0.150 ms | shape: (4, 16)
+
+No packets received for 2.0 seconds. Receiver stopping.
+
+Receiver completed.
+Accepted unique packets: 80
+Rejected size-invalid packets: 0
+Duplicate packets: 0
+Out-of-order unique packets: 0
+Authentication failures: 0
+Unexpected nonces: 0
+Total accepted payload bytes: 10240
+Expected packets: 80
+Missing packets: 0
+Missing sequence numbers: []
+Unexpected sequence numbers: []
+Received EEG shape: (4, 1280)
+
+Sent packet 073 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.591 ms
+Sent packet 074 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.118 ms
+Sent packet 075 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.232 ms
+Sent packet 076 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.381 ms
+Sent packet 077 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.518 ms
+Sent packet 078 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.515 ms
+Sent packet 079 | payload: 128 bytes | header: 12 bytes | total: 172 bytes | schedule lateness: 0.478 ms
+
+Sender completed.
+Planned packets: 80
+Total application bytes sent: 13760
+Actual UDP sends: 80
+
+Content comparison completed.
+Matching packets: 80
+Mismatched sequences: []
+Missing sequences: []
+Unexpected sequences: []
+
+Latency statistics for accepted unique packets:
+receiver_processing: mean=0.0779 ms | p95=0.0855 ms | max=0.3553 ms
+packet_ready: mean=0.2419 ms | p95=0.2935 ms | max=0.6677 ms
+window_start_to_ready: mean=63.0549 ms | p95=63.3124 ms | max=63.6784 ms
+
+Results saved to: C:\Users\HP\Desktop\NetSec\Project\neuro-lwc\results\20261116T140837_975552Z_4e32dcda_mode0
+Test passed: True
